@@ -1,6 +1,6 @@
 package com.example.movieTicket.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,25 +18,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Ticket {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private Integer totalTicketPrice;
-
-    private Date bookedAt;
-
-    private String bookedSeat;
+    private String seatNumber;
+    private Double price;
+    private LocalDateTime bookingTime;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "show_id")
     private Show show;
 
     @ManyToOne
-    @JoinColumn
-    private Users users;
+    @JoinColumn(name = "user_id")
+    private Users user;
 
+  
 
-    
 }
