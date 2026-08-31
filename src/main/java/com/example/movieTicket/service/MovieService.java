@@ -3,21 +3,21 @@ package com.example.movieTicket.service;
 import org.springframework.stereotype.Service;
 
 import com.example.movieTicket.Dtos.MovieRequestDto;
+import com.example.movieTicket.Dtos.MovieResponseDto;
 import com.example.movieTicket.entity.Movie;
-
 import com.example.movieTicket.repository.MovieRepository;
-
 
 @Service
 public class MovieService {
-    private MovieRepository movieRepository;
 
-    public MovieService(MovieRepository movieRepository){
+    private final MovieRepository movieRepository;
+
+    public MovieService(MovieRepository movieRepository) {
         this.movieRepository = movieRepository;
     }
 
-    public String addMovie(MovieRequestDto movieRequest){
-        if(movieRepository.existsByMovieName(movieRequest.getMovieName())){
+    public MovieResponseDto addMovie(MovieRequestDto movieRequest) {
+        if (movieRepository.existsByMovieName(movieRequest.getMovieName())) {
             throw new RuntimeException("this movie already exist");
         }
 
@@ -29,11 +29,19 @@ public class MovieService {
         newMovie.setReleaseDate(movieRequest.getReleaseDate());
         newMovie.setRating(movieRequest.getRating());
 
-        movieRepository.save(newMovie);
+        // Save to DB to generate auto-increment ID
+        Movie savedMovie = movieRepository.save(newMovie);
 
-        return newMovie.getMovieName();
-                            
+        // Map saved entity to MovieResponseDto
+        MovieResponseDto response = new MovieResponseDto();
+        response.setId(savedMovie.getId());
+        response.setMovieName(savedMovie.getMovieName());
+        response.setDuration(savedMovie.getDuration());
+        response.setRating(savedMovie.getRating());
+        response.setReleaseDate(savedMovie.getReleaseDate());
+        response.setGenre(savedMovie.getGenre());
+        response.setLanguage(savedMovie.getLanguage());
+
+        return response;
     }
-
-    
 }

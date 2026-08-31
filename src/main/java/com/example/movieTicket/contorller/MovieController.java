@@ -6,21 +6,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.movieTicket.Dtos.MovieRequestDto;
+import com.example.movieTicket.Dtos.MovieResponseDto;
 import com.example.movieTicket.service.MovieService;
 
 @RestController
 @RequestMapping("/movie")
-public class MovieContorller {
+public class MovieController {
 
-    private MovieService movieService;
+    private final MovieService movieService;
 
-    public MovieContorller(MovieService movieService){
+    public MovieController(MovieService movieService) {
         this.movieService = movieService;
     }
 
-    @PostMapping("addMovie")
-    public String addMovie(@RequestBody MovieRequestDto request){
+    @PostMapping("/addMovie")
+    public MovieResponseDto addMovie(@RequestBody MovieRequestDto request) {
         return movieService.addMovie(request);
     }
-    
 }
