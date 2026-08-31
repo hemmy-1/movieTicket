@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowRequestDto {
+public class ShowSeatResponseDto {
 
-    private String movieName;
-    private Integer screenId;
+    private int id;
+    private String seatNumber;
+    private Double price;
+    private boolean isBooked;
 }

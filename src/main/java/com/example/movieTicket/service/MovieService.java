@@ -1,5 +1,8 @@
 package com.example.movieTicket.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.example.movieTicket.Dtos.MovieRequestDto;
@@ -18,7 +21,7 @@ public class MovieService {
 
     public MovieResponseDto addMovie(MovieRequestDto movieRequest) {
         if (movieRepository.existsByMovieName(movieRequest.getMovieName())) {
-            throw new RuntimeException("this movie already exist");
+            throw new RuntimeException("This movie already exists");
         }
 
         Movie newMovie = new Movie();
@@ -29,19 +32,33 @@ public class MovieService {
         newMovie.setReleaseDate(movieRequest.getReleaseDate());
         newMovie.setRating(movieRequest.getRating());
 
-        // Save to DB to generate auto-increment ID
         Movie savedMovie = movieRepository.save(newMovie);
+        return mapToResponseDto(savedMovie);
+    }
 
-        // Map saved entity to MovieResponseDto
+    public MovieResponseDto getMovieById(int id) {
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Movie not found with ID: " + id));
+        return mapToResponseDto(movie);
+    }
+
+    public List<MovieResponseDto> getAllMovies() {
+        List<Movie> movies = movieRepository.findAll();
+        return movies.stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    // Helper method to convert Movie entity to MovieResponseDto
+    private MovieResponseDto mapToResponseDto(Movie movie) {
         MovieResponseDto response = new MovieResponseDto();
-        response.setId(savedMovie.getId());
-        response.setMovieName(savedMovie.getMovieName());
-        response.setDuration(savedMovie.getDuration());
-        response.setRating(savedMovie.getRating());
-        response.setReleaseDate(savedMovie.getReleaseDate());
-        response.setGenre(savedMovie.getGenre());
-        response.setLanguage(savedMovie.getLanguage());
-
+        response.setId(movie.getId());
+        response.setMovieName(movie.getMovieName());
+        response.setDuration(movie.getDuration());
+        response.setRating(movie.getRating());
+        response.setReleaseDate(movie.getReleaseDate());
+        response.setGenre(movie.getGenre());
+        response.setLanguage(movie.getLanguage());
         return response;
     }
 }

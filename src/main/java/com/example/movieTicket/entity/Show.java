@@ -1,6 +1,6 @@
 package com.example.movieTicket.entity;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class Show {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private LocalTime time;
+    private LocalDateTime time;
 
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
@@ -39,4 +39,8 @@ public class Show {
 
     @OneToMany(mappedBy = "show", cascade = CascadeType.ALL)
     private List<Ticket> ticketList = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "screen_id", nullable = false)
+    private Screen screen;
 }
