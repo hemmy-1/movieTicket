@@ -6,6 +6,8 @@ import com.example.movieTicket.enums.Genre;
 import com.example.movieTicket.enums.Language;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,6 +29,8 @@ public class Movie {
     private Integer duration;
     private Double rating;
     private Date releaseDate;
+
+    @Enumerated(EnumType.STRING)
     private Genre genre;
     private Language language;
     

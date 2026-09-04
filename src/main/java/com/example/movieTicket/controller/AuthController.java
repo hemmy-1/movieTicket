@@ -1,4 +1,4 @@
-package com.example.movieTicket.contorller;
+package com.example.movieTicket.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

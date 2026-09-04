@@ -13,6 +13,8 @@ import com.example.movieTicket.enums.Gender;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,8 +37,11 @@ public class Users implements UserDetails {
 
     private String name;
     private int age;
+
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @Column(unique = true)
     private String mobileNo;
 
     @Column(unique = true)

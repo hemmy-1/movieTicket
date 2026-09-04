@@ -58,7 +58,7 @@ public class ShowService {
                 .orElseThrow(() -> new RuntimeException("Screen not found with ID: " + request.getScreenId()));
 
         Show show = new Show();
-        show.setTime(LocalDateTime.now());
+        show.setTime(request.getShowTime());
         show.setMovie(movie);
         show.setScreen(screen);
 

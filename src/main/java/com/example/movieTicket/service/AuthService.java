@@ -15,9 +15,11 @@ import com.example.movieTicket.repository.UserRepository;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final SmsService smsService;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, SmsService smsService) {
         this.userRepository = userRepository;
+        this.smsService = smsService;
     }
 
     @Transactional
@@ -35,7 +37,10 @@ public class AuthService {
         user.setOtp(generatedOtp);
         userRepository.save(user);
 
-        return "OTP sent successfully. (Mock OTP: " + generatedOtp + ")";
+        String messageBody = "Your verification code for MovieTicket is: " + generatedOtp;
+        smsService.sendSms(request.getMobileNo(), messageBody);
+
+        return "OTP sent successfully to " + request.getMobileNo();
     }
 
     @Transactional

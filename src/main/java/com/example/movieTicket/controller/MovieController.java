@@ -1,4 +1,4 @@
-package com.example.movieTicket.contorller;
+package com.example.movieTicket.controller;
 
 import java.util.List;
 
