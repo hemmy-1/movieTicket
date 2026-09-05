@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.movieTicket.entity.Movie;
 
 public interface MovieRepository extends JpaRepository<Movie, Integer > {
-    Optional<Movie> findMovieByName(String movieName);
+    Optional<Movie> findMovieBymovieName(String movieName);
     boolean existsByMovieName(String movieName);
     
     

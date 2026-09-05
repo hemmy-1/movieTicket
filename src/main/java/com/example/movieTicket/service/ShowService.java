@@ -51,7 +51,7 @@ public class ShowService {
 
     @Transactional
     public Show addShow(ShowRequestDto request) {
-        Movie movie = movieRepository.findMovieByName(request.getMovieName())
+        Movie movie = movieRepository.findMovieBymovieName(request.getMovieName())
                 .orElseThrow(() -> new RuntimeException("Movie not found with name: " + request.getMovieName()));
 
         Screen screen = screenRepository.findByIdWithSeats(request.getScreenId())

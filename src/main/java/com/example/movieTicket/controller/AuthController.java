@@ -6,10 +6,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.movieTicket.Dtos.AuthResponseDto;
 import com.example.movieTicket.Dtos.CompleteProfileRequestDto;
+import com.example.movieTicket.Dtos.RefreshTokenRequestDto;
 import com.example.movieTicket.Dtos.SendOtpRequestDto;
 import com.example.movieTicket.Dtos.VerifyOtpRequestDto;
-import com.example.movieTicket.entity.Users;
 import com.example.movieTicket.service.AuthService;
 
 @RestController
@@ -28,12 +29,17 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<Users> verifyOtp(@RequestBody VerifyOtpRequestDto request) {
+    public ResponseEntity<AuthResponseDto> verifyOtp(@RequestBody VerifyOtpRequestDto request) {
         return ResponseEntity.ok(authService.verifyOtp(request));
     }
 
     @PostMapping("/complete-profile")
-    public ResponseEntity<Users> completeProfile(@RequestBody CompleteProfileRequestDto request) {
+    public ResponseEntity<AuthResponseDto> completeProfile(@RequestBody CompleteProfileRequestDto request) {
         return ResponseEntity.ok(authService.completeProfile(request));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthResponseDto> refreshToken(@RequestBody RefreshTokenRequestDto request) {
+        return ResponseEntity.ok(authService.refreshToken(request));
     }
 }

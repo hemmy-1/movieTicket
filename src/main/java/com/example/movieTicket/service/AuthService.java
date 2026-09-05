@@ -5,10 +5,14 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.movieTicket.Dtos.AuthResponseDto;
 import com.example.movieTicket.Dtos.CompleteProfileRequestDto;
+import com.example.movieTicket.Dtos.RefreshTokenRequestDto;
 import com.example.movieTicket.Dtos.SendOtpRequestDto;
 import com.example.movieTicket.Dtos.VerifyOtpRequestDto;
+import com.example.movieTicket.entity.RefreshToken;
 import com.example.movieTicket.entity.Users;
+import com.example.movieTicket.repository.RefreshTokenRepository;
 import com.example.movieTicket.repository.UserRepository;
 
 @Service
@@ -16,10 +20,20 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final SmsService smsService;
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public AuthService(UserRepository userRepository, SmsService smsService) {
+    public AuthService(UserRepository userRepository,
+            SmsService smsService,
+            JwtService jwtService,
+            RefreshTokenService refreshTokenService,
+            RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.smsService = smsService;
+        this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @Transactional
@@ -44,7 +58,7 @@ public class AuthService {
     }
 
     @Transactional
-    public Users verifyOtp(VerifyOtpRequestDto request) {
+    public AuthResponseDto verifyOtp(VerifyOtpRequestDto request) {
         Users user = userRepository.findByMobileNo(request.getMobileNo())
                 .orElseThrow(() -> new RuntimeException("Mobile number not found"));
 
@@ -54,11 +68,16 @@ public class AuthService {
 
         user.setVerified(true);
         user.setOtp(null);
-        return userRepository.save(user);
+        Users savedUser = userRepository.save(user);
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser);
+        String accessToken = jwtService.generateToken(savedUser);
+
+        return new AuthResponseDto(accessToken, refreshToken.getToken(), savedUser);
     }
 
     @Transactional
-    public Users completeProfile(CompleteProfileRequestDto request) {
+    public AuthResponseDto completeProfile(CompleteProfileRequestDto request) {
         Users user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -66,11 +85,27 @@ public class AuthService {
             throw new RuntimeException("User phone number is not verified!");
         }
 
-        user.setName(request.getName());
+        user.setUserName(request.getName());
         user.setEmail(request.getEmail());
-        user.setAge(request.getAge());
         user.setGender(request.getGender());
 
-        return userRepository.save(user);
+        Users savedUser = userRepository.save(user);
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser);
+        String accessToken = jwtService.generateToken(savedUser);
+
+        return new AuthResponseDto(accessToken, refreshToken.getToken(), savedUser);
+    }
+
+    @Transactional
+    public AuthResponseDto refreshToken(RefreshTokenRequestDto request) {
+        return refreshTokenRepository.findByToken(request.getRefreshToken())
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String accessToken = jwtService.generateToken(user);
+                    return new AuthResponseDto(accessToken, request.getRefreshToken(), user);
+                })
+                .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
     }
 }

@@ -35,8 +35,7 @@ public class Users implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String name;
-    private int age;
+    private String userName;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -50,6 +49,8 @@ public class Users implements UserDetails {
     private String otp;
     private boolean isVerified;
 
+    private String password;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Ticket> ticketLists = new ArrayList<>();
 
@@ -61,12 +62,12 @@ public class Users implements UserDetails {
 
     @Override
     public String getPassword() {
-        return null; // Return null if relying purely on OTP authentication
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return email != null ? email : mobileNo;
+        return userName != null ? userName : mobileNo;
     }
 
     @Override
