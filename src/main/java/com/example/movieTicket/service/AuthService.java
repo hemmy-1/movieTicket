@@ -57,10 +57,10 @@ public class AuthService {
         user.setOtp(generatedOtp);
         userRepository.save(user);
 
-        String messageBody = "Your verification code for MovieTicket is: " + generatedOtp;
-        smsService.sendSms(request.getMobileNo(), messageBody);
+        // String messageBody = "Your verification code for MovieTicket is: " + generatedOtp;
+        // smsService.sendSms(request.getMobileNo(), messageBody);
 
-        return "OTP sent successfully to " + request.getMobileNo();
+        return "Here is your OTP     " + generatedOtp;
     }
 
     @Transactional
