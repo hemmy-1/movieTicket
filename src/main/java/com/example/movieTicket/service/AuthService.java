@@ -2,11 +2,13 @@ package com.example.movieTicket.service;
 
 import java.util.Random;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.movieTicket.Dtos.AuthResponseDto;
 import com.example.movieTicket.Dtos.CompleteProfileRequestDto;
+import com.example.movieTicket.Dtos.LoginRequestDto;
 import com.example.movieTicket.Dtos.RefreshTokenRequestDto;
 import com.example.movieTicket.Dtos.SendOtpRequestDto;
 import com.example.movieTicket.Dtos.VerifyOtpRequestDto;
@@ -24,16 +26,20 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     public AuthService(UserRepository userRepository,
             SmsService smsService,
             JwtService jwtService,
             RefreshTokenService refreshTokenService,
-            RefreshTokenRepository refreshTokenRepository) {
+            RefreshTokenRepository refreshTokenRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.smsService = smsService;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -107,5 +113,24 @@ public class AuthService {
                     return new AuthResponseDto(accessToken, request.getRefreshToken(), user);
                 })
                 .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+    }
+
+    @Transactional
+    public AuthResponseDto login(LoginRequestDto request) {
+        Users user = userRepository.findByUserNameOrMobileNo(request.getIdentifier(), request.getIdentifier())
+                .orElseThrow(() -> new RuntimeException("Invalid username/mobile number or password"));
+
+        if (user.getPassword() == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid username/mobile number or password");
+        }
+
+        if (!user.isVerified()) {
+            throw new RuntimeException("Account is not verified");
+        }
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+        String accessToken = jwtService.generateToken(user);
+
+        return new AuthResponseDto(accessToken, refreshToken.getToken(), user);
     }
 }

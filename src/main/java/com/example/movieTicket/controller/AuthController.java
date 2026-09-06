@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.movieTicket.Dtos.AuthResponseDto;
 import com.example.movieTicket.Dtos.CompleteProfileRequestDto;
+import com.example.movieTicket.Dtos.LoginRequestDto;
 import com.example.movieTicket.Dtos.RefreshTokenRequestDto;
 import com.example.movieTicket.Dtos.SendOtpRequestDto;
 import com.example.movieTicket.Dtos.VerifyOtpRequestDto;
@@ -21,6 +22,11 @@ public class AuthController {
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/send-otp")
