@@ -10,7 +10,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.movieTicket.filter.JwtFilter;
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -28,7 +27,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/auth/**")
+                        auth -> auth.requestMatchers("/auth/**",
+                                "/api/v1/auth")
                                 .permitAll()
                                 .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

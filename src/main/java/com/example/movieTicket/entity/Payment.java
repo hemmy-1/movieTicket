@@ -1,9 +1,11 @@
 package com.example.movieTicket.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.example.movieTicket.enums.PaymentStatus;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,7 +14,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,28 +24,32 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Ticket {
+@Builder
+public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String seatNumber;
-    private Double price;
-    private LocalDateTime bookingTime;
+    @Column(unique = true, nullable = false)
+    private String transactionRef;
 
-    @ManyToOne
-    @JoinColumn(name = "show_id")
-    private Show show;
+    private Double amount;
+
+    private String paymentMethod; 
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status; 
+
+    private LocalDateTime paymentTime;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private Users user;
 
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus; 
+    @OneToOne
+    @JoinColumn(name = "ticket_id")
+    private Ticket ticket;
 
-
-  
-
+   
 }
