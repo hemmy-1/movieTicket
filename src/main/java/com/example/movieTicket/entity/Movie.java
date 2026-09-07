@@ -26,9 +26,10 @@ public class Movie {
     private int id;
     
     private String movieName;
-    private Integer duration;
+    private String duration;
     private Double rating;
     private Date releaseDate;
+    private String imgUrl;
 
     @Enumerated(EnumType.STRING)
     private Genre genre;

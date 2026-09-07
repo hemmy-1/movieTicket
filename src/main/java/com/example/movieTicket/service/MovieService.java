@@ -31,6 +31,7 @@ public class MovieService {
         newMovie.setLanguage(movieRequest.getLanguage());
         newMovie.setReleaseDate(movieRequest.getReleaseDate());
         newMovie.setRating(movieRequest.getRating());
+        newMovie.setImgUrl(movieRequest.getImgUrl());
 
         Movie savedMovie = movieRepository.save(newMovie);
         return mapToResponseDto(savedMovie);
@@ -59,6 +60,7 @@ public class MovieService {
         response.setReleaseDate(movie.getReleaseDate());
         response.setGenre(movie.getGenre());
         response.setLanguage(movie.getLanguage());
+        response.setImgUrl(movie.getImgUrl());
         return response;
     }
 }

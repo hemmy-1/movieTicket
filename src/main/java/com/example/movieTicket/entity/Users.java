@@ -46,6 +46,8 @@ public class Users implements UserDetails {
     @Column(unique = true)
     private String email;
 
+    private int age;
+
     private String otp;
     private boolean isVerified;
 

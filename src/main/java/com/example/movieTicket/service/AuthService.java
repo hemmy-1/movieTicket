@@ -9,9 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.movieTicket.Dtos.AuthResponseDto;
 import com.example.movieTicket.Dtos.CompleteProfileRequestDto;
 import com.example.movieTicket.Dtos.LoginRequestDto;
+import com.example.movieTicket.Dtos.MeRequestDto;
+import com.example.movieTicket.Dtos.MeResponseDto;
 import com.example.movieTicket.Dtos.RefreshTokenRequestDto;
 import com.example.movieTicket.Dtos.SendOtpRequestDto;
 import com.example.movieTicket.Dtos.VerifyOtpRequestDto;
+import com.example.movieTicket.Dtos.RegisterRequestDto;
+import com.example.movieTicket.Dtos.RegisterResponseDto;
 import com.example.movieTicket.entity.RefreshToken;
 import com.example.movieTicket.entity.Users;
 import com.example.movieTicket.repository.RefreshTokenRepository;
@@ -21,7 +25,6 @@ import com.example.movieTicket.repository.UserRepository;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final SmsService smsService;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -29,13 +32,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public AuthService(UserRepository userRepository,
-            SmsService smsService,
             JwtService jwtService,
             RefreshTokenService refreshTokenService,
             RefreshTokenRepository refreshTokenRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.smsService = smsService;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -54,7 +55,6 @@ public class AuthService {
                     return newUser;
                 });
 
-        user.setOtp(generatedOtp);
         userRepository.save(user);
 
         // String messageBody = "Your verification code for MovieTicket is: " + generatedOtp;
@@ -64,7 +64,7 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponseDto verifyOtp(VerifyOtpRequestDto request) {
+    public String verifyOtp(VerifyOtpRequestDto request) {
         Users user = userRepository.findByMobileNo(request.getMobileNo())
                 .orElseThrow(() -> new RuntimeException("Mobile number not found"));
 
@@ -76,12 +76,40 @@ public class AuthService {
         user.setOtp(null);
         Users savedUser = userRepository.save(user);
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser);
-        String accessToken = jwtService.generateToken(savedUser);
-
-        return new AuthResponseDto(accessToken, refreshToken.getToken(), savedUser);
+      
+        return "Otp sucessful";
     }
 
+    @Transactional
+    public RegisterResponseDto register(RegisterRequestDto request) {
+        if (userRepository.existsByMobileNo(request.getMobileNo())) {
+            throw new IllegalArgumentException("This number already exists");
+        }
+
+        // 1. Generate 6-digit OTP
+        String generatedOtp = String.format("%06d", new Random().nextInt(900000) + 100000);
+
+        // 2. Build and save new user
+        Users newUser = new Users();
+        newUser.setEmail(request.getEmail());
+        newUser.setGender(request.getGender());
+        newUser.setMobileNo(request.getMobileNo());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setAge(request.getAge());
+        newUser.setOtp(generatedOtp); // Attach OTP to user
+        newUser.setVerified(false);
+
+        Users savedUser = userRepository.save(newUser);
+
+        // 3. Optional: Trigger mock SMS service logger
+        // smsService.sendSms(savedUser.getMobileNo(), generatedOtp);
+
+        // 4. Return DTO with mobile number, OTP, and response message
+        return new RegisterResponseDto(
+                savedUser.getMobileNo(),
+                generatedOtp,
+                "User registered successfully. Please verify using the OTP.");
+    }
     @Transactional
     public AuthResponseDto completeProfile(CompleteProfileRequestDto request) {
         Users user = userRepository.findById(request.getUserId())
@@ -92,15 +120,15 @@ public class AuthService {
         }
 
         user.setUserName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setGender(request.getGender());
+       
 
+      
         Users savedUser = userRepository.save(user);
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser);
         String accessToken = jwtService.generateToken(savedUser);
 
-        return new AuthResponseDto(accessToken, refreshToken.getToken(), savedUser);
+        return new AuthResponseDto(accessToken, refreshToken.getToken());
     }
 
     @Transactional
@@ -110,7 +138,7 @@ public class AuthService {
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     String accessToken = jwtService.generateToken(user);
-                    return new AuthResponseDto(accessToken, request.getRefreshToken(), user);
+                    return new AuthResponseDto(accessToken, request.getRefreshToken());
                 })
                 .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
     }
@@ -131,6 +159,20 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
         String accessToken = jwtService.generateToken(user);
 
-        return new AuthResponseDto(accessToken, refreshToken.getToken(), user);
+        return new AuthResponseDto(accessToken, refreshToken.getToken());
+    }
+
+    public MeResponseDto Me(MeRequestDto request){
+
+        Users user = userRepository.findByUserName(request.getUserName()).orElseThrow(()-> new RuntimeException("User not found"));
+
+        return new MeResponseDto(
+            user.getId(),
+            user.getGender(),
+            user.getMobileNo(),
+            user.getEmail(),
+            user.getAge(),
+            user.getTicketLists()
+        );
     }
 }

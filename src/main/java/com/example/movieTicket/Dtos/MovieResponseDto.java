@@ -11,10 +11,12 @@ import lombok.Data;
 public class MovieResponseDto {
     private int id;
     private String movieName;
-    private Integer duration;
+    private String duration;
     private Double rating;
     private Date releaseDate;
     private Genre genre;
     private Language language;
+    private String imgUrl;
+
 
 }

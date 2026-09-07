@@ -10,10 +10,12 @@ import lombok.Data;
 @Data
 public class MovieRequestDto {
     private String movieName;
-    private Integer duration;
+    private String duration;
     private Double rating;
     private Date releaseDate;
     private Genre genre;
     private Language language;
+    private String imgUrl;
+
     
 }
