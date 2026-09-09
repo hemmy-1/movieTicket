@@ -2,6 +2,9 @@ package com.example.movieTicket.filter;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +24,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
+
     private final JwtService jwtService;
     private final UserService userService;
 
@@ -35,38 +40,43 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String username;
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        // 1. Check if Authorization header contains a Bearer token
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2. Extract token and username
-        jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
+        final String jwt = authHeader.substring(7).trim();
 
-        // 3. Authenticate if token is valid and user is not yet authenticated
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService.loadUserByUsername(username);
-
-            if (jwtService.isValidToken(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
-
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Set authentication in security context
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+        if (jwt.isBlank()) {
+            SecurityContextHolder.clearContext();
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        // 4. Pass request down the chain
+        try {
+            String username = jwtService.extractUsername(jwt);
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userService.loadUserByUsername(username);
+
+                if (jwtService.isValidToken(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
+
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+        } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            logger.warn("Invalid JWT token for request {}: {}",
+                    request.getRequestURI(), ex.getMessage());
+        }
+
         filterChain.doFilter(request, response);
     }
-}
+}   
